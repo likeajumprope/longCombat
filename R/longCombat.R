@@ -68,6 +68,10 @@ longCombat <- function(idvar, timevar, batchvar, features,
   sigma_estimates <- rep(NA, V)
   predicted <- matrix(nrow=L, ncol=V)
   batch_effects <- matrix(nrow=(m-1), ncol=V)
+  
+  fixef_list <- vector('list', V) # add collector for fixed_effects
+  varcorr_list <- vector('list', V) # add collector for variance components
+  
   for (v in 1:V){ # begin loop over features
     if (verbose) cat(paste0('[longCombat] fitting lme model for feature ', v, '\n'))
     # make the linear mixed effects model lmer formula
@@ -86,6 +90,9 @@ longCombat <- function(idvar, timevar, batchvar, features,
     batch_effects[,v] <- lme4::fixef(lme_fit)[grep(batchvar, names(lme4::fixef(lme_fit)))]
     # save predicted values
     predicted[,v] <- fitted(lme_fit)
+    # ADD
+    fixef_list[[v]] <- lme4::fixef(lme_fit) #save all fixed effects
+    varcorr_list[[v]] <- as.data.frame(lme4::VarCorr(lme_fit)) # save all variance components
   } # end loop over features
   # create a L*V matrix of sigma estimates
   sigmas <- matrix(rep(sigma_estimates, each=L), nrow=L, ncol=V)
@@ -196,6 +203,13 @@ longCombat <- function(idvar, timevar, batchvar, features,
   rownames(gammastarhat_final) <- levels(batch)
   rownames(delta2starhat_final) <- levels(batch)
   
+  # add and relable
+  names(fixef_list) <- featurenames
+  names(varcorr_list) <- featurenames
+  names(sigma_estimates) <- featurenames
+  colnames(batch_effects_adjusted) <- featurenames
+  rownames(batch_effects_adjusted) <- levels(batch)
+  
   ##############################
   # return results
   ##############################
@@ -203,6 +217,13 @@ longCombat <- function(idvar, timevar, batchvar, features,
               gammahat=gammahat, 
               delta2hat=delta2hat,
               gammastarhat=gammastarhat_final, 
-              delta2starhat=delta2starhat_final
+              delta2starhat=delta2starhat_final,
+              fixef=fixef_list,
+              varcorr=varcorr_list,
+              sigma=sigma_estimates,
+              batch_effects=batch_effects_adjusted,
+              batch_sizes=setNames(ni, levels(batch)),
+              model=list(formula=formula, ranef=ranef, batchvar=batchvar,
+                         idvar=idvar, timevar=timevar, method=method)
               ))
 }
