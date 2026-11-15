@@ -16,6 +16,8 @@ Note: longCombat currently will not run if tidyverse suite is loaded. This may b
 
 [Contact Joanne Beer](mailto:joannecbeer@gmail.com?subject=[GitHub]%20longCombat) with any questions, comments, or suggestions. Feedback is appreciated. 
 
+# Applying longComBat to a test set.
+
 The file LongComBat_apply_test.R contains an examplpe of how to apply the parameters from longgitudinal ComBat to a test set.
 The steps are the following:
 
